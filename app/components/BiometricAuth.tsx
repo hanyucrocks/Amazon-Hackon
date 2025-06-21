@@ -30,11 +30,18 @@ interface Transaction {
 // IndexedDB setup
 const initDB = () => {
   return new Promise((resolve, reject) => {
+    // Check if IndexedDB is available
+    if (typeof window === 'undefined' || !window.indexedDB) {
+      console.warn('IndexedDB not available, using localStorage fallback');
+      reject(new Error('IndexedDB not available'));
+      return;
+    }
+
     console.log('Initializing IndexedDB...');
     const request = indexedDB.open('VaultXDB', 1);
 
     request.onerror = (event) => {
-      console.error('IndexedDB error:', event);
+      console.warn('IndexedDB error, falling back to localStorage:', event);
       reject(request.error);
     };
 
@@ -141,94 +148,130 @@ export function BiometricAuth({ onSuccess, onError, onTabChange, amount, product
       dbRef.current = db as IDBDatabase;
       loadTransactions();
     }).catch((error) => {
-      console.error('Failed to initialize DB:', error);
+      console.warn('IndexedDB initialization failed, using localStorage fallback:', error);
+      // Fallback to localStorage - load transactions from localStorage
+      loadTransactionsFromLocalStorage();
     });
   }, []);
+
+  // Load transactions from localStorage as fallback
+  const loadTransactionsFromLocalStorage = () => {
+    try {
+      const storedTransactions = localStorage.getItem('pendingTransactions');
+      if (storedTransactions) {
+        const allTransactions = JSON.parse(storedTransactions) || [];
+        console.log('Loaded transactions from localStorage:', allTransactions);
+        
+        // Separate pending and completed transactions
+        const pending = allTransactions.filter((tx: Transaction) => tx.status === 'pending');
+        const completed = allTransactions.filter((tx: Transaction) => tx.status === 'completed');
+        
+        setPendingTransactions(pending);
+        setCompletedTransactions(completed);
+      }
+    } catch (error) {
+      console.warn('Error loading transactions from localStorage:', error);
+    }
+  };
 
   // Load transactions and separate completed ones
   const loadTransactions = () => {
     console.log('Loading transactions...');
     if (!dbRef.current) {
-      console.log('DB not initialized yet');
+      console.log('DB not initialized, using localStorage fallback');
+      loadTransactionsFromLocalStorage();
       return;
     }
 
-    const transaction = dbRef.current.transaction(['transactions'], 'readonly');
-    const store = transaction.objectStore('transactions');
-    const request = store.getAll();
+    try {
+      const transaction = dbRef.current.transaction(['transactions'], 'readonly');
+      const store = transaction.objectStore('transactions');
+      const request = store.getAll();
 
-    request.onsuccess = () => {
-      const allTransactions = request.result || [];
-      console.log('Loaded all transactions:', allTransactions);
-      
-      // Separate pending and completed transactions
-      const pending = allTransactions.filter(tx => tx.status === 'pending');
-      const completed = allTransactions.filter(tx => tx.status === 'completed');
-      
-      setPendingTransactions(pending);
-      setCompletedTransactions(completed);
-    };
+      request.onsuccess = () => {
+        const allTransactions = request.result || [];
+        console.log('Loaded all transactions:', allTransactions);
+        
+        // Separate pending and completed transactions
+        const pending = allTransactions.filter(tx => tx.status === 'pending');
+        const completed = allTransactions.filter(tx => tx.status === 'completed');
+        
+        setPendingTransactions(pending);
+        setCompletedTransactions(completed);
+      };
 
-    request.onerror = (event) => {
-      console.error('Error loading transactions:', event);
-    };
+      request.onerror = (event) => {
+        console.warn('Error loading transactions from IndexedDB, using localStorage fallback:', event);
+        loadTransactionsFromLocalStorage();
+      };
+    } catch (error) {
+      console.warn('IndexedDB load failed, using localStorage fallback:', error);
+      loadTransactionsFromLocalStorage();
+    }
   };
 
   // Save transaction with trace
   const saveTransaction = async (transaction: Transaction) => {
     console.log('Saving transaction with trace:', transaction);
-    if (!dbRef.current) {
-      console.log('DB not initialized yet');
-      return;
-    }
+    
+    // Add trace to transaction
+    const transactionWithTrace = {
+      ...transaction,
+      trace: `Transaction saved at ${new Date().toISOString()}`
+    };
 
-    try {
-      // Add trace to transaction
-      const transactionWithTrace = {
-        ...transaction,
-        trace: `Transaction saved at ${new Date().toISOString()}`
-      };
+    // Try IndexedDB first
+    if (dbRef.current) {
+      try {
+        const tx = dbRef.current.transaction(['transactions'], 'readwrite');
+        const store = tx.objectStore('transactions');
 
-      const tx = dbRef.current.transaction(['transactions'], 'readwrite');
-      const store = tx.objectStore('transactions');
-
-      // Check if transaction exists
-      const getRequest = store.get(transaction.id);
-      
-      await new Promise((resolve, reject) => {
-        getRequest.onsuccess = () => {
-          const existingTransaction = getRequest.result;
-          if (existingTransaction) {
-            // Update existing transaction
-            const updatedTransaction = {
-              ...existingTransaction,
-              ...transactionWithTrace,
-              trace: `${existingTransaction.trace || ''}\nUpdated at ${new Date().toISOString()}`
-            };
-            const updateRequest = store.put(updatedTransaction);
-            updateRequest.onsuccess = () => {
-              console.log('Transaction updated in IndexedDB with trace');
-              updateLocalStorage(updatedTransaction);
-              loadTransactions();
-              resolve(updateRequest.result);
-            };
-            updateRequest.onerror = () => reject(updateRequest.error);
-          } else {
-            // Add new transaction
-            const addRequest = store.add(transactionWithTrace);
-            addRequest.onsuccess = () => {
-              console.log('Transaction added to IndexedDB with trace');
-              updateLocalStorage(transactionWithTrace);
-              loadTransactions();
-              resolve(addRequest.result);
-            };
-            addRequest.onerror = () => reject(addRequest.error);
-          }
-        };
-        getRequest.onerror = () => reject(getRequest.error);
-      });
-    } catch (error) {
-      console.error('Error saving transaction:', error);
+        // Check if transaction exists
+        const getRequest = store.get(transaction.id);
+        
+        await new Promise((resolve, reject) => {
+          getRequest.onsuccess = () => {
+            const existingTransaction = getRequest.result;
+            if (existingTransaction) {
+              // Update existing transaction
+              const updatedTransaction = {
+                ...existingTransaction,
+                ...transactionWithTrace,
+                trace: `${existingTransaction.trace || ''}\nUpdated at ${new Date().toISOString()}`
+              };
+              const updateRequest = store.put(updatedTransaction);
+              updateRequest.onsuccess = () => {
+                console.log('Transaction updated in IndexedDB with trace');
+                updateLocalStorage(updatedTransaction);
+                loadTransactions();
+                resolve(updateRequest.result);
+              };
+              updateRequest.onerror = () => reject(updateRequest.error);
+            } else {
+              // Add new transaction
+              const addRequest = store.add(transactionWithTrace);
+              addRequest.onsuccess = () => {
+                console.log('Transaction added to IndexedDB with trace');
+                updateLocalStorage(transactionWithTrace);
+                loadTransactions();
+                resolve(addRequest.result);
+              };
+              addRequest.onerror = () => reject(addRequest.error);
+            }
+          };
+          getRequest.onerror = () => reject(getRequest.error);
+        });
+      } catch (error) {
+        console.warn('IndexedDB save failed, using localStorage fallback:', error);
+        // Fallback to localStorage only
+        updateLocalStorage(transactionWithTrace);
+        loadTransactionsFromLocalStorage();
+      }
+    } else {
+      // IndexedDB not available, use localStorage only
+      console.log('IndexedDB not available, using localStorage');
+      updateLocalStorage(transactionWithTrace);
+      loadTransactionsFromLocalStorage();
     }
   };
 

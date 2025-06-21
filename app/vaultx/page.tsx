@@ -27,8 +27,15 @@ import {
   Moon,
   Sun,
   CheckCircle2,
+  TrendingUp,
+  Users,
+  Calendar,
+  DollarSign,
+  CheckCircle,
+  XCircle,
 } from "lucide-react"
 import { BiometricAuth } from "../components/BiometricAuth"
+import SellerDetailModal from "../components/SellerDetailModal"
 
 interface PendingPayment {
   id: string
@@ -37,12 +44,32 @@ interface PendingPayment {
   status: 'pending' | 'syncing'
 }
 
+interface Seller {
+  id: string
+  name: string
+  category: string
+  verified: boolean
+  totalSales: number
+  totalRevenue: number
+  trustScore: number
+  safeShoppingScore: number
+  averageRating: number
+  totalRatings: number
+  refundRate: number
+}
+
 export default function VaultXApp() {
   const [activeTab, setActiveTab] = useState("snappay")
   const [isOnline, setIsOnline] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [language, setLanguage] = useState("en")
   const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([])
+  const [sellers, setSellers] = useState<Seller[]>([])
+  const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null)
+  const [isSellerModalOpen, setIsSellerModalOpen] = useState(false)
+  const [loadingSellers, setLoadingSellers] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+  
   const searchParams = useSearchParams()
   const amount = searchParams.get('amount')
   const product = searchParams.get('product')
@@ -75,6 +102,17 @@ export default function VaultXApp() {
 
   // Check if Pay Now button should be visible (only when both amount and productId are present)
   const shouldShowPayNow = amount && productId
+
+  // Client-side only date formatting to prevent hydration mismatches
+  const formatDate = (timestamp: number) => {
+    if (!isClient) return '' // Return empty string during SSR
+    return new Date(timestamp).toLocaleString()
+  }
+
+  // Set isClient to true after component mounts
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     // Check network status
@@ -113,6 +151,33 @@ export default function VaultXApp() {
       });
   }, [activeTab])
 
+  // Fetch sellers when trust tab is active
+  useEffect(() => {
+    if (activeTab === "trust" && sellers.length === 0) {
+      fetchSellers()
+    }
+  }, [activeTab, sellers.length])
+
+  const fetchSellers = async () => {
+    setLoadingSellers(true)
+    try {
+      const response = await fetch('/api/seller-trust')
+      if (response.ok) {
+        const data = await response.json()
+        setSellers(data.sellers || [])
+      }
+    } catch (error) {
+      console.error('Error fetching sellers:', error)
+    } finally {
+      setLoadingSellers(false)
+    }
+  }
+
+  const handleSellerClick = (sellerId: string) => {
+    setSelectedSellerId(sellerId)
+    setIsSellerModalOpen(true)
+  }
+
   const handleTransactionSuccess = (transaction: { id: string }) => {
     if (!isOnline) {
       setPendingPayments(prev => [...prev, {
@@ -126,6 +191,23 @@ export default function VaultXApp() {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab)
+  }
+
+  const getTrustLevel = (score: number) => {
+    if (score >= 90) return { level: 'Excellent', color: 'text-green-600', bg: 'bg-green-100' }
+    if (score >= 80) return { level: 'Very Good', color: 'text-blue-600', bg: 'bg-blue-100' }
+    if (score >= 70) return { level: 'Good', color: 'text-yellow-600', bg: 'bg-yellow-100' }
+    if (score >= 60) return { level: 'Fair', color: 'text-orange-600', bg: 'bg-orange-100' }
+    return { level: 'Poor', color: 'text-red-600', bg: 'bg-red-100' }
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount)
   }
 
   return (
@@ -359,7 +441,7 @@ export default function VaultXApp() {
                             Refund for Product ID: {refund.productId}
                           </p>
                           <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
-                            {new Date(refund.timestamp).toLocaleString()}
+                            {formatDate(refund.timestamp)}
                           </p>
                         </div>
                       </div>
@@ -566,28 +648,176 @@ export default function VaultXApp() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { name: "TechWorld Electronics", rating: 4.8, sales: "10K+", verified: true },
-                  { name: "Fashion Hub", rating: 4.6, sales: "5K+", verified: true },
-                  { name: "Home Essentials", rating: 4.9, sales: "15K+", verified: true },
-                ].map((seller, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                        <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      </div>
-                      <div>
-                        <p className={`font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>{seller.name}</p>
-                        <div className="flex items-center space-x-2 text-sm">
-                          <span className="text-yellow-500">★ {seller.rating}</span>
-                          <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>• {seller.sales} sales</span>
+                {loadingSellers ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                  </div>
+                ) : sellers.length > 0 ? (
+                  sellers.map((seller, index) => (
+                    <button
+                      key={seller.id}
+                      onClick={() => handleSellerClick(seller.id)}
+                      className="w-full text-left"
+                    >
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                            <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <p className={`font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                                {seller.name}
+                              </p>
+                              {seller.verified && (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-4 text-sm">
+                              <div className="flex items-center space-x-1">
+                                <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                <span className="text-yellow-600 font-medium">
+                                  {seller.averageRating.toFixed(1)}
+                                </span>
+                                <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+                                  ({seller.totalRatings})
+                                </span>
+                              </div>
+                              <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+                                {seller.totalSales.toLocaleString()} sales
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-3 mt-2">
+                              <div className="flex items-center space-x-1">
+                                <TrendingUp className="h-3 w-3 text-blue-500" />
+                                <span className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                  Trust: {seller.trustScore}%
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Shield className="h-3 w-3 text-green-500" />
+                                <span className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                  Safe: {seller.safeShoppingScore}%
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <div className="flex items-center space-x-1">
+                                <span className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                  Refund: {seller.refundRate.toFixed(1)}%
+                                </span>
+                              </div>
+                              <span className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>•</span>
+                              <div className="flex items-center space-x-1">
+                                <span className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                  {seller.category}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end space-y-1">
+                          <ChevronRight className={`h-5 w-5 ${isDarkMode ? "text-gray-400" : "text-gray-400"}`} />
+                          <Badge className={`text-xs ${getTrustLevel(seller.trustScore).bg} ${getTrustLevel(seller.trustScore).color}`}>
+                            {getTrustLevel(seller.trustScore).level}
+                          </Badge>
                         </div>
                       </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                      No sellers found
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Trust Score Breakdown */}
+            <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white"}>
+              <CardHeader>
+                <h3 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                  How We Calculate Safe Shopping Scores
+                </h3>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {[
+                  { 
+                    factor: "Rating Quality", 
+                    weight: "25%", 
+                    desc: "Quality of ratings based on distribution and sentiment",
+                    icon: Star,
+                    color: "text-yellow-500"
+                  },
+                  { 
+                    factor: "Recent Performance", 
+                    weight: "20%", 
+                    desc: "Recent ratings and sales performance (last 3 months)",
+                    icon: TrendingUp,
+                    color: "text-blue-500"
+                  },
+                  { 
+                    factor: "Consistency", 
+                    weight: "15%", 
+                    desc: "Consistency in ratings over time",
+                    icon: CheckCircle,
+                    color: "text-green-500"
+                  },
+                  { 
+                    factor: "Refund Rate", 
+                    weight: "15%", 
+                    desc: "Low refund rate indicates reliability",
+                    icon: Shield,
+                    color: "text-purple-500"
+                  },
+                  { 
+                    factor: "Volume Reliability", 
+                    weight: "10%", 
+                    desc: "High volume with good ratings",
+                    icon: Users,
+                    color: "text-orange-500"
+                  },
+                  { 
+                    factor: "Verification", 
+                    weight: "5%", 
+                    desc: "Identity and business verification status",
+                    icon: Award,
+                    color: "text-indigo-500"
+                  },
+                  { 
+                    factor: "Time Active", 
+                    weight: "5%", 
+                    desc: "Years of operation on the platform",
+                    icon: Calendar,
+                    color: "text-pink-500"
+                  },
+                  { 
+                    factor: "Dispute Rate", 
+                    weight: "5%", 
+                    desc: "Low dispute rate shows good customer service",
+                    icon: XCircle,
+                    color: "text-red-500"
+                  },
+                ].map((item, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <div className={`w-8 h-8 ${item.color.replace('text-', 'bg-').replace('-500', '-100')} dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0`}>
+                      <item.icon className={`h-4 w-4 ${item.color}`} />
                     </div>
-                    <ChevronRight className={`h-5 w-5 ${isDarkMode ? "text-gray-400" : "text-gray-400"}`} />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className={`font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                          {item.factor}
+                        </p>
+                        <Badge variant="secondary" className="text-xs">
+                          {item.weight}
+                        </Badge>
+                      </div>
+                      <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                        {item.desc}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </CardContent>
@@ -661,6 +891,16 @@ export default function VaultXApp() {
           <span className="font-bold text-blue-600">VaultX</span>
         </div>
       </div>
+
+      {/* Seller Detail Modal */}
+      {selectedSellerId && (
+        <SellerDetailModal
+          isOpen={isSellerModalOpen}
+          onClose={() => setIsSellerModalOpen(false)}
+          sellerId={selectedSellerId}
+          isDarkMode={isDarkMode}
+        />
+      )}
     </div>
   )
 } 
