@@ -11,6 +11,7 @@ interface BiometricAuthProps {
   onError: (error: string) => void;
   onTabChange?: (tab: string) => void;
   amount?: number;
+  productId?: string | null;
 }
 
 // Default PIN for new users
@@ -104,7 +105,7 @@ async function pushTransactionToServer(transaction: Transaction) {
   }
 }
 
-export function BiometricAuth({ onSuccess, onError, onTabChange, amount }: BiometricAuthProps) {
+export function BiometricAuth({ onSuccess, onError, onTabChange, amount, productId }: BiometricAuthProps) {
   const router = useRouter();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showPinInput, setShowPinInput] = useState(false);
@@ -854,11 +855,15 @@ export function BiometricAuth({ onSuccess, onError, onTabChange, amount }: Biome
           </div>
           <Button
             onClick={handlePayNow}
-            disabled={isAuthenticating || isLocked}
-            className="w-full h-16 bg-orange-500 hover:bg-orange-600 text-white text-xl font-bold rounded-xl"
+            disabled={isAuthenticating || isLocked || !productId}
+            className={`w-full h-16 text-white text-xl font-bold rounded-xl disabled:opacity-100 ${
+              productId 
+                ? 'bg-orange-500 hover:bg-orange-600' 
+                : 'bg-red-600 cursor-not-allowed'
+            }`}
           >
-            <CreditCard className="h-6 w-6 mr-3" />
-            {isLocked ? `Locked (${lockoutTime}s)` : 'Pay Now'}
+            <CreditCard className="h-6 w-6 mr-2" />
+            {isLocked ? `Locked (${lockoutTime}s)` : productId ? 'Pay Now' : 'Product not selected'}
           </Button>
           <Button
             onClick={handleChangePin}

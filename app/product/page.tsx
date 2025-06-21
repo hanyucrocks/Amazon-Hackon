@@ -39,8 +39,8 @@ export default function ProductPage() {
   }
 
   const handleBuyWithAmazonPay = () => {
-    // Redirect to VaultX app
-    router.push('/vaultx')
+    // Redirect to authentication page
+    router.push('/auth?amount=129.99&product=Premium%20Wireless%20Headphones&productId=1')
   }
 
   return (

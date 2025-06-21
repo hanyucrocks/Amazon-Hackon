@@ -190,9 +190,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   };
 
   const handleBuyWithAmazonPay = () => {
-    // Redirect to VaultX app with the correct price (after drop if applicable)
+    // Redirect to authentication page with the correct price (after drop if applicable)
     const payAmount = productId === 2 && price !== null ? price : product.price;
-    router.push(`/vaultx?amount=${payAmount}&product=${encodeURIComponent(product.name)}&productId=${productId}`)
+    router.push(`/auth?amount=${payAmount}&product=${encodeURIComponent(product.name)}&productId=${productId}`)
   }
 
   // Reset price handler for product 2

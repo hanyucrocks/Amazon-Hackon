@@ -46,6 +46,7 @@ export default function VaultXApp() {
   const searchParams = useSearchParams()
   const amount = searchParams.get('amount')
   const product = searchParams.get('product')
+  const productId = searchParams.get('productId')
 
   const [smartCoinsBalance, setSmartCoinsBalance] = useState(0)
   const [refunds, setRefunds] = useState<any[]>([])
@@ -72,6 +73,9 @@ export default function VaultXApp() {
     { name: "BookMyShow", icon: "🎬", available: false },
   ]
 
+  // Check if Pay Now button should be visible (only when both amount and productId are present)
+  const shouldShowPayNow = amount && productId
+
   useEffect(() => {
     // Check network status
     const checkNetworkStatus = () => {
@@ -84,6 +88,16 @@ export default function VaultXApp() {
     return () => {
       window.removeEventListener('online', checkNetworkStatus)
       window.removeEventListener('offline', checkNetworkStatus)
+    }
+  }, [])
+
+  // Ensure user ID is initialized and persisted
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('userId')
+    if (!storedUserId) {
+      // Generate new user ID if none exists
+      const newUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      localStorage.setItem('userId', newUserId)
     }
   }, [])
 
@@ -214,13 +228,14 @@ export default function VaultXApp() {
                       onError={(error) => console.error(error)}
                       onTabChange={handleTabChange}
                       amount={amount ? parseFloat(amount) : undefined}
+                      productId={productId}
                     />
                     <div className="absolute -top-2 -right-2 bg-blue-600 rounded-full p-2">
                       <Fingerprint className="h-5 w-5 text-white" />
                     </div>
                   </div>
                   <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                    Tap and authenticate with fingerprint or Face ID
+                    {shouldShowPayNow ? "Tap and authenticate with fingerprint or Face ID" : "Product not selected"}
                   </p>
                 </div>
               </CardContent>
