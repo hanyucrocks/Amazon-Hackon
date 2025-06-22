@@ -153,11 +153,6 @@ VaultX/
 5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 🌐 Vercel Link
-
-**Live Demo**: [VaultX - Secure Payment Platform](https://your-vercel-link.vercel.app)
-
-> 🚀 Experience VaultX in action with our live demo hosted on Vercel!
 
 ## 🔧 Configuration
 
