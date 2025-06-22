@@ -7,6 +7,8 @@
 
 **Live Demo**: [VaultX - Secure Payment Platform](https://vaultxzip.vercel.app/)
 
+**Presentation**: [Team What-If - VaultX Project Presentation](./Team%20What-If_National%20Institute%20of%20Technology%2C%20Jamshedpur.pdf)
+
 ![VaultX Banner](https://img.shields.io/badge/VaultX-Secure%20Payment%20Platform-orange?style=for-the-badge&logo=amazon)
 ![Next.js](https://img.shields.io/badge/Next.js-15.2.4-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
