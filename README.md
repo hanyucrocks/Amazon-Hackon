@@ -154,7 +154,7 @@ AWS Infrastructure/
 
 2. **Install dependencies**
    ```bash
-   npm install (if this fails then use npm install -legacy -peer -deps
+   npm install (if this fails then use npm install -legacy -peer -deps)
    # or
    pnpm install
    ```
