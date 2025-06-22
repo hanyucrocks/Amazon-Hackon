@@ -26,7 +26,7 @@
 - [🎯 Key Components](#-key-components)
 - [🔐 Security Features](#-security-features)
 - [📱 Screenshots](#-screenshots)
-- [🤝 Contributing](#-contributing)
+- [🤝 Acknowledgments](#-Acknowledgments)
 
 
 ## 🚀 Overview
