@@ -34,7 +34,7 @@
 
 ## 🚀 Overview
 
-VaultX is a cutting-edge payment platform that combines the reliability of Amazon Pay with innovative features like SmartCoins rewards and comprehensive seller trust scoring. Built for the modern e-commerce landscape, VaultX provides a secure, user-friendly, and feature-rich payment experience.
+VaultX is a middleware prototype solution integrated with Amazon Pay, to help users experience a more smoother payment experience. Equipped with SnapPay, Our Offline Payment system with Smartcoins that refund whenever there is a price drop post-purchase, VaultX is a solution that not only benefits Tier 2/3 Rural Users who have low connectivity of internet, but also those people who have a hard time buying products with digital money.
 
 ### 🎯 Project Goals
 
@@ -107,8 +107,7 @@ AWS Infrastructure/
 │   ├── price-change-monitor/     # Price change detection
 │   ├── refund-calculator/        # Refund amount computation
 │   └── smartcoins-updater/       # Balance updates
-└── EventBridge/                  # Event-driven architecture
-    └── price-change-events/      # Price change triggers
+
 ```
 
 ## 🛠️ Tech Stack
@@ -155,7 +154,7 @@ AWS Infrastructure/
 
 2. **Install dependencies**
    ```bash
-   npm install
+   npm install (if this fails then use npm install -legacy -peer -deps
    # or
    pnpm install
    ```
@@ -335,21 +334,7 @@ AWS Infrastructure/
      --zip-file fileb://smartcoins-updater.zip
    ```
 
-2. **Configure EventBridge Rules**
-   ```bash
-   # Create rule for price change events
-   aws events put-rule \
-     --name vaultx-price-change-rule \
-     --event-pattern '{"source":["vaultx.price.change"],"detail-type":["PriceChange"]}' \
-     --state ENABLED
-
-   # Add Lambda targets
-   aws events put-targets \
-     --rule vaultx-price-change-rule \
-     --targets Id=1,Arn=arn:aws:lambda:REGION:ACCOUNT:function:vaultx-price-change-monitor
-   ```
-
-3. **Lambda Function Workflow**
+2. **Lambda Function Workflow**
    ```typescript
    // Price Change Monitor Lambda
    export const handler = async (event: any) => {
@@ -368,7 +353,7 @@ AWS Infrastructure/
    };
    ```
 
-4. **Environment Variables**
+3. **Environment Variables**
    ```env
    # Lambda Environment Variables
    DYNAMODB_TABLE_NAME=vaultx_refunds
