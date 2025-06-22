@@ -124,7 +124,6 @@ AWS Infrastructure/
 ### Backend & Database
 - **AWS DynamoDB** - NoSQL database for scalability
 - **AWS Lambda** - Serverless functions for automated processing
-- **AWS EventBridge** - Event-driven architecture for price changes
 - **Next.js API Routes** - Serverless API endpoints
 - **IndexedDB** - Client-side data storage
 - **LocalStorage** - Fallback storage
