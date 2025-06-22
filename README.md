@@ -5,7 +5,7 @@
 
 ## 🌐 Vercel Link
 
-**Live Demo**: [VaultX - Secure Payment Platform](https://vaultxzip.vercel.app/)
+**Live Demo**: [VaultX - Secure Payment Platform](https://vaultxzip.vercel.app/) **Default PIN**: 123456
 
 **Presentation**: [Team What-If - VaultX Project Presentation](./Team%20What-If_National%20Institute%20of%20Technology%2C%20Jamshedpur.pdf)
 
@@ -184,8 +184,6 @@ AWS Infrastructure/
 
 ### AWS DynamoDB Setup
 
-Default PIN - "123456"
-
 1. **Create DynamoDB Tables**
    ```bash
    # Products table
@@ -205,6 +203,13 @@ Default PIN - "123456"
    # Refunds table
    aws dynamodb create-table \
      --table-name refunds \
+     --attribute-definitions AttributeName=id,AttributeType=S \
+     --key-schema AttributeName=id,KeyType=HASH \
+     --billing-mode PAY_PER_REQUEST
+
+   # Transactions table
+   aws dynamodb create-table \
+     --table-name transactions \
      --attribute-definitions AttributeName=id,AttributeType=S \
      --key-schema AttributeName=id,KeyType=HASH \
      --billing-mode PAY_PER_REQUEST
@@ -284,7 +289,7 @@ Default PIN - "123456"
 ## 🔐 Security Features
 
 ### Authentication
-- **6-digit PIN**: Secure numeric authentication, (Default PIN : 123456)
+- **6-digit PIN**: Secure numeric authentication
 - **Lockout Protection**: 5 failed attempts trigger 20-second lockout
 - **Biometric Support**: Face-ID authentication ready
 - **Offline Security**: Local data protection
