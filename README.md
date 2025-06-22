@@ -46,7 +46,7 @@ VaultX is a cutting-edge payment platform that combines the reliability of Amazo
 ## ✨ Features
 
 ### 💳 Payment Features
-- **Biometric Authentication**: Fingerprint and PIN-based security
+- **Biometric Authentication**: Face-ID and PIN-based security
 - **Offline Processing**: Payments work without internet connection
 - **Transaction Sync**: Automatic synchronization when online
 - **Multi-factor Security**: PIN lockout protection and retry limits
@@ -128,7 +128,7 @@ AWS Infrastructure/
 - **LocalStorage** - Fallback storage
 
 ### Authentication & Security
-- **Biometric Auth** - Fingerprint and PIN security
+- **Biometric Auth** - Face-ID and PIN security
 - **PIN Management** - Secure PIN storage and validation
 - **Offline Security** - Local data encryption
 
@@ -284,7 +284,7 @@ Default PIN - "123456"
 ### Authentication
 - **6-digit PIN**: Secure numeric authentication, (Default PIN : 123456)
 - **Lockout Protection**: 5 failed attempts trigger 20-second lockout
-- **Biometric Support**: Fingerprint authentication ready
+- **Biometric Support**: Face-ID authentication ready
 - **Offline Security**: Local data protection
 
 ### Data Protection
