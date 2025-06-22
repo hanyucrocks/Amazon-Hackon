@@ -9,6 +9,8 @@
 
 **Presentation**: [Team What-If - VaultX Project Presentation](./Team%20What-If_National%20Institute%20of%20Technology%2C%20Jamshedpur.pdf)
 
+**Demo Video in YT**: [Demo Video of showcasing the entire prototype and its functionalities](https://youtu.be/QbKPmYIZqso)
+
 ![Next.js](https://img.shields.io/badge/Next.js-15.2.4-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.17-38B2AC?style=for-the-badge&logo=tailwind-css)
