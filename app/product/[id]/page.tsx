@@ -125,9 +125,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const productId = parseInt(resolvedParams.id)
   const product = products[productId as keyof typeof products]
 
-  // Redirect if product not found
+  // Redirect if product not found - moved to useEffect
+  useEffect(() => {
+    if (!product) {
+      router.push('/')
+    }
+  }, [product, router])
+
+  // Return null if product not found to prevent rendering
   if (!product) {
-    router.push('/')
     return null
   }
 

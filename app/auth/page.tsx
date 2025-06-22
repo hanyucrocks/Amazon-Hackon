@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -19,7 +19,7 @@ import {
   EyeOff
 } from "lucide-react"
 
-export default function BiometricAuthPage() {
+function BiometricAuthContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -413,4 +413,19 @@ export default function BiometricAuthPage() {
       </Card>
     </div>
   )
+}
+
+export default function BiometricAuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading authentication...</p>
+        </div>
+      </div>
+    }>
+      <BiometricAuthContent />
+    </Suspense>
+  );
 } 

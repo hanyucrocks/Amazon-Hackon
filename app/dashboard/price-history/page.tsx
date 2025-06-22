@@ -1,7 +1,7 @@
 "use client"
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Line } from "react-chartjs-2";
@@ -43,7 +43,7 @@ const products: { [key: number]: { id: number; name: string; images: string[] } 
   }
 };
 
-export default function PriceHistoryDashboard() {
+function PriceHistoryContent() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId");
   const [priceHistory, setPriceHistory] = useState<any[]>([]);
@@ -228,5 +228,20 @@ export default function PriceHistoryDashboard() {
         Back to SmartCoins
       </Button>
     </div>
+  );
+}
+
+export default function PriceHistoryDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading price history...</p>
+        </div>
+      </div>
+    }>
+      <PriceHistoryContent />
+    </Suspense>
   );
 } 

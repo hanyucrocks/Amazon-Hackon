@@ -514,17 +514,17 @@ export function BiometricAuth({ onSuccess, onError, onTabChange, amount, product
 
   useEffect(() => {
     // Generate or retrieve user ID
-    let existingUserId = localStorage.getItem('userId');
-    if (!existingUserId) {
-      existingUserId = 'USER_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('userId', existingUserId);
+    let userId = localStorage.getItem('userId');
+    if (!userId) {
+      userId = 'USER_' + Date.now() + '_' + crypto.randomUUID().substr(0, 8);
+      localStorage.setItem('userId', userId);
     }
-    setUserId(existingUserId);
+    setUserId(userId);
 
     // Load stored PIN or set default
-    const savedPin = localStorage.getItem(`userPin_${existingUserId}`);
+    const savedPin = localStorage.getItem(`userPin_${userId}`);
     if (!savedPin) {
-      localStorage.setItem(`userPin_${existingUserId}`, DEFAULT_PIN);
+      localStorage.setItem(`userPin_${userId}`, DEFAULT_PIN);
       setStoredPin(DEFAULT_PIN);
       console.log('Setting default PIN:', DEFAULT_PIN);
     } else {
@@ -597,12 +597,12 @@ export function BiometricAuth({ onSuccess, onError, onTabChange, amount, product
     const productId = urlParams.get('productId') || urlParams.get('product') || '';
     let userId = localStorage.getItem('userId');
     if (!userId) {
-      userId = 'USER_' + Math.random().toString(36).substr(2, 9);
+      userId = 'USER_' + Date.now() + '_' + crypto.randomUUID().substr(0, 8);
       localStorage.setItem('userId', userId);
     }
     // Create transaction object
     const newTransaction: any = {
-        id: 'TXN_' + Math.random().toString(36).substr(2, 9),
+        id: 'TXN_' + Date.now() + '_' + crypto.randomUUID().substr(0, 8),
         amount: amount || 100, // Use provided amount or default
         timestamp: Date.now(),
       status: networkStatus === 'online' ? 'completed' : 'pending',
