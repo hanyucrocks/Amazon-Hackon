@@ -12,6 +12,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.17-38B2AC?style=for-the-badge&logo=tailwind-css)
 ![AWS DynamoDB](https://img.shields.io/badge/AWS-DynamoDB-orange?style=for-the-badge&logo=amazon-aws)
+![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange?style=for-the-badge&logo=aws-lambda)
 
 ## 📋 Table of Contents
 
@@ -40,6 +41,7 @@ VaultX is a cutting-edge payment platform that combines the reliability of Amazo
 - **Trust Scoring**: Advanced seller trust and safety metrics
 - **Offline-First**: Robust offline payment processing
 - **Price Intelligence**: Real-time price tracking and history
+- **Automated Refunds**: AWS Lambda-powered automatic refund processing
 
 ## ✨ Features
 
@@ -67,6 +69,13 @@ VaultX is a cutting-edge payment platform that combines the reliability of Amazo
 - **Transaction Monitoring**: Real-time payment tracking
 - **Network Status**: Connectivity monitoring
 
+### 🤖 Automated Refund Processing
+- **Price Change Detection**: AWS Lambda monitors product price changes
+- **Automatic Refund Calculation**: Intelligent refund amount computation
+- **Backend Integration**: Seamless refund processing through API
+- **Frontend Updates**: Real-time SmartCoins balance updates
+- **Transaction History**: Complete audit trail of automatic refunds
+
 ## 🏗️ Architecture
 
 ```
@@ -85,6 +94,19 @@ VaultX/
 ├── lib/                          # Utility functions
 ├── public/                       # Static assets
 └── styles/                       # Global styles
+
+AWS Infrastructure/
+├── DynamoDB/                     # NoSQL database
+│   ├── products/                 # Product data
+│   ├── price_history/            # Price change tracking
+│   ├── refunds/                  # Refund records
+│   └── transactions/             # Payment transactions
+├── Lambda Functions/             # Serverless processing
+│   ├── price-change-monitor/     # Price change detection
+│   ├── refund-calculator/        # Refund amount computation
+│   └── smartcoins-updater/       # Balance updates
+└── EventBridge/                  # Event-driven architecture
+    └── price-change-events/      # Price change triggers
 ```
 
 ## 🛠️ Tech Stack
@@ -99,6 +121,8 @@ VaultX/
 
 ### Backend & Database
 - **AWS DynamoDB** - NoSQL database for scalability
+- **AWS Lambda** - Serverless functions for automated processing
+- **AWS EventBridge** - Event-driven architecture for price changes
 - **Next.js API Routes** - Serverless API endpoints
 - **IndexedDB** - Client-side data storage
 - **LocalStorage** - Fallback storage
@@ -185,6 +209,16 @@ VaultX/
 2. **Configure IAM Permissions**
    Ensure your AWS credentials have DynamoDB read/write permissions.
 
+### Seller Trust Modal
+```typescript
+// Comprehensive seller trust analysis
+<SellerDetailModal 
+  sellerId="seller_001"
+  isOpen={true}
+  onClose={handleClose}
+/>
+```
+
 ## 🚀 Usage
 
 ### For Customers
@@ -242,14 +276,6 @@ VaultX/
 ```
 
 ### Seller Trust Modal
-```typescript
-// Comprehensive seller trust analysis
-<SellerDetailModal 
-  sellerId="seller_001"
-  isOpen={true}
-  onClose={handleClose}
-/>
-```
 
 ## 🔐 Security Features
 
@@ -270,6 +296,78 @@ VaultX/
 - **Data Minimization**: Only necessary data collection
 - **Local Processing**: Offline-first approach
 
+## 🤖 AWS Lambda Configuration
+
+### Automated Refund Processing Setup
+
+1. **Create Lambda Functions**
+   ```bash
+   # Price Change Monitor Lambda
+   aws lambda create-function \
+     --function-name vaultx-price-change-monitor \
+     --runtime nodejs18.x \
+     --handler index.handler \
+     --role arn:aws:iam::YOUR_ACCOUNT:role/lambda-execution-role \
+     --zip-file fileb://price-change-monitor.zip
+
+   # Refund Calculator Lambda
+   aws lambda create-function \
+     --function-name vaultx-refund-calculator \
+     --runtime nodejs18.x \
+     --handler index.handler \
+     --role arn:aws:iam::YOUR_ACCOUNT:role/lambda-execution-role \
+     --zip-file fileb://refund-calculator.zip
+
+   # SmartCoins Updater Lambda
+   aws lambda create-function \
+     --function-name vaultx-smartcoins-updater \
+     --runtime nodejs18.x \
+     --handler index.handler \
+     --role arn:aws:iam::YOUR_ACCOUNT:role/lambda-execution-role \
+     --zip-file fileb://smartcoins-updater.zip
+   ```
+
+2. **Configure EventBridge Rules**
+   ```bash
+   # Create rule for price change events
+   aws events put-rule \
+     --name vaultx-price-change-rule \
+     --event-pattern '{"source":["vaultx.price.change"],"detail-type":["PriceChange"]}' \
+     --state ENABLED
+
+   # Add Lambda targets
+   aws events put-targets \
+     --rule vaultx-price-change-rule \
+     --targets Id=1,Arn=arn:aws:lambda:REGION:ACCOUNT:function:vaultx-price-change-monitor
+   ```
+
+3. **Lambda Function Workflow**
+   ```typescript
+   // Price Change Monitor Lambda
+   export const handler = async (event: any) => {
+     const { productId, oldPrice, newPrice } = event.detail;
+     
+     // Check if refund is applicable
+     if (newPrice < oldPrice) {
+       const refundAmount = oldPrice - newPrice;
+       
+       // Trigger refund calculation
+       await lambda.invoke({
+         FunctionName: 'vaultx-refund-calculator',
+         Payload: JSON.stringify({ productId, refundAmount })
+       });
+     }
+   };
+   ```
+
+4. **Environment Variables**
+   ```env
+   # Lambda Environment Variables
+   DYNAMODB_TABLE_NAME=vaultx_refunds
+   API_ENDPOINT=https://your-api.vercel.app/api
+   SMARTCOINS_RATE=1.0
+   ```
+
 ## 📱 Screenshots
 
 ### Main Interface
@@ -286,7 +384,7 @@ VaultX/
 
 ## 🙏 Acknowledgments
 
-- **Amazon Web Services** for DynamoDB infrastructure
+- **Amazon Web Services** for DynamoDB and Lambda infrastructure
 - **Next.js Team** for the amazing framework
 - **Tailwind CSS** for the utility-first CSS framework
 - **Radix UI** for accessible components
@@ -298,4 +396,3 @@ VaultX/
 ---
 
 **Built with ❤️ for Amazon HackOn Season 5**
-
