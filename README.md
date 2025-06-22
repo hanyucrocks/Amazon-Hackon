@@ -182,6 +182,8 @@ AWS Infrastructure/
 
 ### AWS DynamoDB Setup
 
+Default PIN - "123456"
+
 1. **Create DynamoDB Tables**
    ```bash
    # Products table
