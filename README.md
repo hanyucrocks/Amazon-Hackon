@@ -282,7 +282,7 @@ Default PIN - "123456"
 ## 🔐 Security Features
 
 ### Authentication
-- **6-digit PIN**: Secure numeric authentication
+- **6-digit PIN**: Secure numeric authentication, (Default PIN : 123456)
 - **Lockout Protection**: 5 failed attempts trigger 20-second lockout
 - **Biometric Support**: Fingerprint authentication ready
 - **Offline Security**: Local data protection
