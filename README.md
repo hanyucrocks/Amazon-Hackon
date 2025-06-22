@@ -162,7 +162,7 @@ AWS Infrastructure/
 3. **Environment Configuration**
    Create a `.env.local` file:
    ```env
-   AWS_REGION=ap-south-1
+   AWS_REGION=eu-north-1
    AWS_ACCESS_KEY_ID=your_access_key
    AWS_SECRET_ACCESS_KEY=your_secret_key
    ```
