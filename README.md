@@ -1,7 +1,7 @@
 # 🏦 VaultX - Secure Payment Platform
 
 > **Amazon HackOn Season 5 Submission**  
-> A revolutionary payment platform powered by Amazon Pay with SmartCoins rewards and advanced seller trust scoring.
+> A middleware solution integrated with Amazon Pay with SmartCoins rewards and Offline Payment Storing (SnapPay).
 
 ## 🌐 Vercel Link
 
