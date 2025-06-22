@@ -10,7 +10,12 @@ const client = new DynamoDBClient({
 });
 
 // Default product data if not found in DynamoDB
-const defaultProducts = {
+const defaultProducts: Record<string, {
+  id: number;
+  name: string;
+  price: number;
+  originalPrice: number;
+}> = {
   '1': {
     id: 1,
     name: "Premium Wireless Headphones",

@@ -33,6 +33,7 @@ import {
   DollarSign,
   CheckCircle,
   XCircle,
+  BarChart3,
 } from "lucide-react"
 import { BiometricAuth } from "../components/BiometricAuth"
 import SellerDetailModal from "../components/SellerDetailModal"
@@ -445,9 +446,20 @@ export default function VaultXApp() {
                           </p>
                         </div>
                       </div>
-                      <span className="font-bold text-green-600 dark:text-green-400">
-                        +{refund.refundAmount} SC
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold text-green-600 dark:text-green-400">
+                          +{refund.refundAmount} SC
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-1 h-8 w-8"
+                          onClick={() => window.open(`/dashboard/price-history?productId=${refund.productId}`, '_blank')}
+                          title="View Price History"
+                        >
+                          <BarChart3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </Button>
+                      </div>
                     </div>
                   ))
                 )}
